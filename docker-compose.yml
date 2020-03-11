@@ -1,0 +1,10 @@
+
+version: "3.7"
+services:
+  app:
+    image: maven:3.3-jdk-8
+    environment:
+      - CLOUDHUB_USERNAME
+      - CLOUDHUB_PASSWORD
+      - CLOUDHUB_ENVIRONMENT
+    command: mvn clean package deploy -DmuleDeploy -Dusername=$CLOUDHUB_USERNAME -Dpassword=$CLOUDHUB_PASSWORD -Denvironment=$CLOUDHUB_ENVIRONMENT
