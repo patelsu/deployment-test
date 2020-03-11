@@ -7,4 +7,4 @@ services:
       - CLOUDHUB_USERNAME
       - CLOUDHUB_PASSWORD
       - CLOUDHUB_ENVIRONMENT
-    command: mvn clean package deploy -DmuleDeploy -Dusername=$CLOUDHUB_USERNAME -Dpassword=$CLOUDHUB_PASSWORD -Denvironment=$CLOUDHUB_ENVIRONMENT
+    command: mvn -Dmaven.repo.local=/codefresh/volume/m2_repositoryclean package deploy -DmuleDeploy -Dusername=$CLOUDHUB_USERNAME -Dpassword=$CLOUDHUB_PASSWORD -Denvironment=$CLOUDHUB_ENVIRONMENT
