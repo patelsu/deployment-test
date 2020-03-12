@@ -1,0 +1,64 @@
+version: "1.0"
+stages:
+  - "clone"
+  - "build"
+  - "deploy-test"
+  - "deploy-staging"
+  - "deploy-prod"
+
+steps:
+  main_clone:
+    type: git-clone
+    description: Cloning main repository...
+    repo: patelsu/deployment-test
+    revision: ${{CF_BRANCH}}
+    stage: clone
+  get_build_version:
+    description: Getting configured Maven version
+    stage: build
+    image: ${{MAVEN_IMAGE}}
+    commands:
+      - VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.1.0:evaluate -Dexpression=project.version -q -DforceStdout)
+      - cf_export BUILD_VERSION='v'$VERSION
+  check_version:
+    description: Checking if the version is already tagged
+    stage: build
+    image: alpine/git:latest
+    commands:
+      - echo $BUILD_VERSION
+      - sh ./checkversion.sh $BUILD_VERSION
+  build_package:
+    title: build package
+    image: ${{MAVEN_IMAGE}}
+    stage: build
+    commands:
+      - mvn -Dmaven.repo.local=/codefresh/volume/m2_repository clean package
+  deploy_test:
+    title: Deploy to test
+    image: ${{MAVEN_IMAGE}}
+    stage: deploy-test
+    environment:
+      - CLOUDHUB_ENVIRONMENT=Sandbox
+      - WORKERTYPE=MICRO
+      - WORKERS=1
+      - SKIPVERIFICATION=true
+    commands:
+      - echo $CLOUDHUB_USERNAME
+      - mvn -Dmaven.repo.local=/codefresh/volume/m2_repositoryclean package deploy -DmuleDeploy -Dusername=$CLOUDHUB_USERNAME -Dpassword=$CLOUDHUB_PASSWORD -Denvironment=$CLOUDHUB_ENVIRONMENT -DbusinessGroupId=$CLOUDHUB_GROUPID -DworkerType=$WORKERTYPE -Dwokers=$WORKERS -DskipVerification=$SKIPVERIFICATION
+  prod_approval:
+    type: pending-approval
+    title: Pending prod approval
+    description: Step description
+    stage: deploy-prod
+    when:
+      branch:
+        only: [ master ]
+  tag_build:
+    title: Tagging build
+    image: alpine/git:latest    
+    stage: deploy-prod
+    when:
+      branch:
+        only: [ master ]
+    commands:
+      - git tag -a $BUILD_VERSION $CF_REVISION
