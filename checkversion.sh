@@ -1,4 +1,4 @@
-#!/bin/bash set -e
+#!/bin/sh -e
 
 git fetch --tag
 
@@ -7,6 +7,7 @@ then
     exit 1
 else
     exit 0
+fi
 
 
 
