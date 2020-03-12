@@ -6,7 +6,7 @@
 
 	<groupId>com.mycompany</groupId>
 	<artifactId>deployment-test</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>${revision}</version>
 	<packaging>mule-application</packaging>
 
 	<name>deployment-test</name>
@@ -17,6 +17,8 @@
 
 		<app.runtime>4.2.2</app.runtime>
 		<mule.maven.plugin.version>3.3.6</mule.maven.plugin.version>
+		<revision>1.0.0</revision>
+		<sha1></sha1>
 	</properties>
 
 	<build>
@@ -32,18 +34,14 @@
 						<muleVersion>${app.runtime}</muleVersion>
 						<username>${username}</username>
 						<password>${password}</password>
-						<businessGroupId>68d51fe5-b0e2-43a4-8074-79fd1dc27a22</businessGroupId>
+						<businessGroupId>${businessGroupId}</businessGroupId>
 						<applicationName>deployment-test-${environment}</applicationName>
 						<region>ap-southeast-2</region>
 						<environment>${environment}</environment>
-					    <workerType>Micro</workerType>
-						<workers>1</workers>
+					    <workerType>${workerType}</workerType>
+						<workers>${workers}</workers>
 						<objectStoreV2>true</objectStoreV2>
-						<skipDeploymentVerification>true</skipDeploymentVerification>
-
-						<!-- <username>${env.CLOUDHUB_USERNAME}</username> <password>${env.CLOUDHUB_PASSWORD}</password> 
-							<applicationName>${env.CLOUDHUB_APP_NAME}</applicationName> <environment>${env.CLOUDHUB_ENV}</environment> 
-							<properties> <http.port>${env.HTTP_PORT}</http.port> </properties> <workerType>${env.WORKERTYPE}</workerType> -->
+						<skipDeploymentVerification>${skipVerification}</skipDeploymentVerification>
 					</cloudHubDeployment>
 				</configuration>
 			</plugin>
