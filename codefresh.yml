@@ -45,6 +45,28 @@ steps:
     commands:
       - echo $CLOUDHUB_USERNAME
       - mvn -Dmaven.repo.local=/codefresh/volume/m2_repositoryclean package deploy -DmuleDeploy -Dusername=$CLOUDHUB_USERNAME -Dpassword=$CLOUDHUB_PASSWORD -Denvironment=$CLOUDHUB_ENVIRONMENT -DbusinessGroupId=$CLOUDHUB_GROUPID -DworkerType=$WORKERTYPE -Dwokers=$WORKERS -DskipVerification=$SKIPVERIFICATION
+  get_git_token:
+    title: Reading Github token
+    image: codefresh/cli
+    commands:
+      - GIT_CONTEXT=$(codefresh get context github --decrypt -o yaml)
+      - echo $GIT_CONTEXT
+      - cf_export GITHUB_TOKEN=$(codefresh get context github --decrypt -o yaml | yq -y .spec.data.auth.password)
+  tag_build:
+    title: Tagging build
+    image: alpine/git:latest    
+    stage: deploy-test
+    git: github
+    when:
+      branch:
+        only: [ master ]
+    commands:
+      - git config --global user.email $GIT_EMAIL                                                                                                  
+      - git config --global user.name $GIT_USER      
+      - REPOURL=https://$GITHUB_TOKEN@github.com/$CF_REPO_OWNER/$CF_REPO_NAME.git
+      - echo $REPOURL
+      - git tag -a $BUILD_VERSION $CF_REVISION -m "Test Release" 
+      - git push --tags $REPOURL
   prod_approval:
     type: pending-approval
     title: Pending prod approval
@@ -53,12 +75,19 @@ steps:
     when:
       branch:
         only: [ master ]
-  tag_build:
-    title: Tagging build
-    image: alpine/git:latest    
+  github_release:
+    type: github-release
+    title: Release and upload artifact
     stage: deploy-prod
     when:
       branch:
         only: [ master ]
-    commands:
-      - git tag -a $BUILD_VERSION $CF_REVISION
+    description: |-
+      The git_context_name, repo_owner and repo_name vars
+      will be taken automatically from the trigger.
+      Requires the pipeline to be started by a github trigger
+    arguments:
+      release_name: 'PROD-${{BUILD_VERSION}}'
+      release_tag: 'PROD-${{BUILD_VERSION}}'
+      files:
+        - '${{CF_VOLUME_PATH}}/${{CF_REPO_NAME}}/target/*.jar'
