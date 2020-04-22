@@ -35,7 +35,7 @@
 						<username>${username}</username>
 						<password>${password}</password>
 						<businessGroupId>${businessGroupId}</businessGroupId>
-						<applicationName>deployment-test-${environment}</applicationName>
+						<applicationName>deployment-test-${appextension}</applicationName>
 						<region>ap-southeast-2</region>
 						<environment>${environment}</environment>
 					    <workerType>${workerType}</workerType>

@@ -56,6 +56,7 @@ jobs:
         CLOUDHUB_USERNAME: ${{secrets.CLOUDHUB_USERNAME}}
         CLOUDHUB_GROUPID: ${{secrets.CLOUDHUB_ORG}}
         CLOUDHUB_PASSWORD: ${{secrets.CLOUDHUB_PASSWORD}}
+        APPEXTENSION: sandbox1
       shell: bash
-      run: mvn package deploy -DmuleDeploy -Dusername=$CLOUDHUB_USERNAME -Dpassword=$CLOUDHUB_PASSWORD -Denvironment=$CLOUDHUB_ENVIRONMENT -DbusinessGroupId=$CLOUDHUB_GROUPID -DworkerType=$WORKERTYPE -Dwokers=$WORKERS -DskipVerification=$SKIPVERIFICATION
+      run: mvn package deploy -DmuleDeploy -Dusername=$CLOUDHUB_USERNAME -Dpassword=$CLOUDHUB_PASSWORD -Denvironment=$CLOUDHUB_ENVIRONMENT -DbusinessGroupId=$CLOUDHUB_GROUPID -DworkerType=$WORKERTYPE -Dwokers=$WORKERS -DskipVerification=$SKIPVERIFICATION -Dappextension=$APPEXTENSION
    
