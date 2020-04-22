@@ -17,7 +17,7 @@
 
 		<app.runtime>4.2.2</app.runtime>
 		<mule.maven.plugin.version>3.3.6</mule.maven.plugin.version>
-		<revision>1.0.0</revision>
+		<revision>1.0.2</revision>
 		<sha1></sha1>
 	</properties>
 
