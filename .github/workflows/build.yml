@@ -30,7 +30,12 @@ jobs:
       if: "!contains(github.event_name, 'tag')"
       id: getversion
       shell: bash
-      run: sh ./getbuildversion.sh
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+      run: |
+        echo ${{ github.event_name }}
+        echo $EVENT_NAME
+        sh ./getbuildversion.sh
 
     - name: "Check version"
       if: "!contains(github.event_name, 'tag')"
