@@ -17,7 +17,7 @@
 
 		<app.runtime>4.2.2</app.runtime>
 		<mule.maven.plugin.version>3.3.6</mule.maven.plugin.version>
-		<revision>1.0.0</revision>
+		<revision>1.0.2</revision>
 		<sha1></sha1>
 	</properties>
 
@@ -35,7 +35,7 @@
 						<username>${username}</username>
 						<password>${password}</password>
 						<businessGroupId>${businessGroupId}</businessGroupId>
-						<applicationName>deployment-test-${environment}</applicationName>
+						<applicationName>deployment-test-${appextension}</applicationName>
 						<region>ap-southeast-2</region>
 						<environment>${environment}</environment>
 					    <workerType>${workerType}</workerType>
