@@ -27,13 +27,13 @@ jobs:
         ref: ${{ github.ref }}
         fetch-depth: 0
     - name: Get app version
-      if: ! contains(github.event_name, "tag")
+      if: "!contains(github.event_name, 'tag')"
       id: getversion
       shell: bash
       run: sh ./getbuildversion.sh
 
     - name: "Check version"
-      if: ! contains(github.event_name, "tag")
+      if: "!contains(github.event_name, 'tag')"
       id: checkversion
       shell: bash
       env:
@@ -70,7 +70,7 @@ jobs:
    
     - name: "Tag Release"
       shell: bash
-      if: contains(github.ref, "master")
+      if: contains(github.ref, 'master')
       env:
         BUILD_VERSION: ${{ steps.getversion.outputs.BUILD_VERSION }}
         COMMITID : 
@@ -81,7 +81,7 @@ jobs:
         git push origin "$TAG"
 
     - name: "deploy prod"
-      if: contains(github.event_name, "tag") && contains(github.ref, "PROD")
+      if: contains(github.event_name, 'tag') && contains(github.ref, 'PROD')
       shell: bash
       run: echo "deploy to prod"
 
