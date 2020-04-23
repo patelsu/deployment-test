@@ -73,9 +73,9 @@ jobs:
    
     - name: "Tag Release"
       shell: bash
+      if: contains(github.ref, 'master') && !contains(github.ref, 'PROD')
       env:
         BUILD_VERSION: ${{ steps.getversion.outputs.BUILD_VERSION }}
-        COMMITID : 
       run: |
         echo "develop-$BUILD_VERSION"
         TAG="develop-$BUILD_VERSION"
@@ -88,8 +88,10 @@ jobs:
       run: echo "deploy to prod"
 
     - uses: actions/upload-artifact@v2-preview
+      env:
+        BUILD_VERSION: ${{ steps.getversion.outputs.BUILD_VERSION }}
       with:
-        name: target
+        name: deployment-$BUILDVERSION
         path: 'target/*.jar'
 
    
