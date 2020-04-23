@@ -6,7 +6,10 @@ name: CI
 # events but only for the master branch
 on:
   push:   
+    tags:
+      - PROD-*
   pull_request:    
+ 
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -22,11 +25,13 @@ jobs:
         ref: ${{ github.ref }}
         fetch-depth: 0
     - name: Get app version
+      if: ! contains(github.event_name, "tag")
       id: getversion
       shell: bash
       run: sh ./getbuildversion.sh
 
     - name: "Check version"
+      if: ! contains(github.event_name, "tag")
       id: checkversion
       shell: bash
       env:
@@ -44,10 +49,11 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    
     - name: Build project
       run:  mvn clean package
    
-    - name: Deploy
+    - name: Deploy      
       env:
         CLOUDHUB_ENVIRONMENT : Sandbox
         WORKERTYPE: MICRO
@@ -59,4 +65,22 @@ jobs:
         APPEXTENSION: sandbox1
       shell: bash
       run: mvn package deploy -DmuleDeploy -Dusername=$CLOUDHUB_USERNAME -Dpassword=$CLOUDHUB_PASSWORD -Denvironment=$CLOUDHUB_ENVIRONMENT -DbusinessGroupId=$CLOUDHUB_GROUPID -DworkerType=$WORKERTYPE -Dwokers=$WORKERS -DskipVerification=$SKIPVERIFICATION -Dappextension=$APPEXTENSION
+   
+    - name: "Tag Release"
+      shell: bash
+      if: contains(github.ref, "master")
+      env:
+        BUILD_VERSION: ${{ steps.getversion.outputs.BUILD_VERSION }}
+        COMMITID : 
+      run: |
+        echo "develop-$BUILD_VERSION"
+        TAG="develop-$BUILD_VERSION"
+        git tag -a "$TAG" ${GITHUB_SHA} -m "Sandbox deployment"
+        git push origin "$TAG"
+
+    - name: "deploy prod"
+      if: contains(github.event_name, "tag") && contains(github.ref, "PROD")
+      shell: bash
+      run: echo "deploy to prod"
+
    
