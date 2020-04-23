@@ -73,14 +73,13 @@ jobs:
    
     - name: "Tag Release"
       shell: bash
-      if: contains(github.ref, 'master')
       env:
         BUILD_VERSION: ${{ steps.getversion.outputs.BUILD_VERSION }}
         COMMITID : 
       run: |
         echo "develop-$BUILD_VERSION"
         TAG="develop-$BUILD_VERSION"
-        git tag "$TAG" ${GITHUB_SHA} -m "Sandbox deployment"
+        git tag "$TAG" 
         git push origin "$TAG"
 
     - name: "deploy prod"
@@ -88,7 +87,7 @@ jobs:
       shell: bash
       run: echo "deploy to prod"
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2-preview
       with:
         name: target
         path: 'target/*.jar'
