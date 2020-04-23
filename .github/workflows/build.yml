@@ -38,7 +38,7 @@ jobs:
       shell: bash
       env:
         BUILD_VERSION: ${{ steps.getversion.outputs.BUILD_VERSION }}
-      run: sh ./checkversion.sh $BUILD_VERSION
+      run: sh ./checkversion.sh develop-$BUILD_VERSION
 
     - uses: actions/cache@v1
       with:
