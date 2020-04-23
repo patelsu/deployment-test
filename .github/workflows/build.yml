@@ -7,10 +7,11 @@ name: CI
 on:
   push:   
     branches: 
-      - '**'
-    tags:
-      - PROD-*
+      - '**'    
   pull_request:    
+  release:
+    types: # This configuration does not affect the page_build event above
+      - created
  
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -20,27 +21,36 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     env: 
-      PROD_RELEASE: contains(github.ref, 'PROD')
+      PROD_RELEASE: ${{ contains(github.ref, 'PROD') }}
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - name: "debug step"
+      shell: bash
+      env:
+        EVENT: ${{ toJSON(github.event) }}
+        PROD:  ${{ env.PROD_RELEASE == 'false' }}
+        PROD1: ${{ env.PROD_RELEASE == 'true' }}
+      run: |
+        echo ${{ github.ref }}
+        echo $EVENT
+        echo "$PROD  $PROD1 "
     - uses: actions/checkout@v2
       with:
         ref: ${{ github.ref }}
         fetch-depth: 0
     - name: Get app version
-      if: "!($PROD_RELEASE)"
+      if: env.PROD_RELEASE  == 'false'
       id: getversion
       shell: bash
       env:
         EVENT_NAME: ${{ github.event_name }}
       run: |
-        echo ${{ github.event_name }}
-        echo $EVENT_NAME
+        echo "PROD release ${{ env.PROD_RELEASE }}" 
         sh ./getbuildversion.sh
 
     - name: "Check version"
-      if: "!($PROD_RELEASE)"
+      if: env.PROD_RELEASE  == 'false'
       id: checkversion
       shell: bash
       env:
@@ -62,7 +72,8 @@ jobs:
     - name: Build project
       run:  mvn clean package
    
-    - name: Deploy      
+    - name: Deploy Test
+      if: env.PROD_RELEASE  == 'false'
       env:
         CLOUDHUB_ENVIRONMENT : Sandbox
         WORKERTYPE: MICRO
@@ -80,7 +91,8 @@ jobs:
    
     - name: "Tag Release"
       shell: bash
-      if: contains(github.ref, 'master') && !($PROD_RELEASE)
+      if: contains(github.ref, 'master') && (env.PROD_RELEASE  == 'false')
+      env:
         BUILD_VERSION: ${{ steps.getversion.outputs.BUILD_VERSION }}
       run: |
         echo "develop-$BUILD_VERSION"
@@ -89,7 +101,7 @@ jobs:
         git push origin "$TAG"
 
     - name: "deploy prod"
-      if: $PROD_RELEASE
+      if:  env.PROD_RELEASE
       shell: bash
       run: echo "deploy to prod"
 
