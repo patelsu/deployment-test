@@ -7,10 +7,11 @@ name: CI
 on:
   push:   
     branches: 
-      - '**'
-    tags:
-      - PROD-*
+      - '**'    
   pull_request:    
+  release:
+    types: # This configuration does not affect the page_build event above
+      - created
  
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -19,26 +20,58 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    env: 
+      PROD_RELEASE: ${{ contains(github.ref, 'PROD') }}
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - name: "debug step"
+      shell: bash
+      env:
+        EVENT: ${{ toJSON(github.event) }}
+        PROD:  ${{ env.PROD_RELEASE == 'false' }}
+        PROD1: ${{ env.PROD_RELEASE == 'true' }}
+      run: |
+        echo ${{ github.ref }}
+        echo $EVENT
+        echo "$PROD  $PROD1 "
+
+    - name: "check valid prod release"
+      if: env.PROD_RELEASE == 'true'
+      shell: bash
+      env: 
+        TARGET: ${{ github.event.release.target_commitish }}
+        ISMASTER: ${{ contains(github.event.release.target_commitish, 'master') }}
+      run: |
+        echo $TARGET
+        echo $ISMASTER
+        if [ $ISMASTER = 'true' ]
+        then
+          exit 0
+        else
+          exit 1
+        fi
     - uses: actions/checkout@v2
       with:
         ref: ${{ github.ref }}
         fetch-depth: 0
     - name: Get app version
-      if: "!contains(github.event_name, 'tag')"
+      if: env.PROD_RELEASE  == 'false'
       id: getversion
       shell: bash
-      run: sh ./getbuildversion.sh
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+      run: |
+        echo "PROD release ${{ env.PROD_RELEASE }}" 
+        sh ./getbuildversion.sh
 
     - name: "Check version"
-      if: "!contains(github.event_name, 'tag')"
+      if: env.PROD_RELEASE  == 'false'
       id: checkversion
       shell: bash
       env:
         BUILD_VERSION: ${{ steps.getversion.outputs.BUILD_VERSION }}
-      run: sh ./checkversion.sh $BUILD_VERSION
+      run: sh ./checkversion.sh develop-$BUILD_VERSION
 
     - uses: actions/cache@v1
       with:
@@ -55,7 +88,8 @@ jobs:
     - name: Build project
       run:  mvn clean package
    
-    - name: Deploy      
+    - name: Deploy Test
+      if: env.PROD_RELEASE  == 'false'
       env:
         CLOUDHUB_ENVIRONMENT : Sandbox
         WORKERTYPE: MICRO
@@ -66,23 +100,32 @@ jobs:
         CLOUDHUB_PASSWORD: ${{secrets.CLOUDHUB_PASSWORD}}
         APPEXTENSION: sandbox1
       shell: bash
-      run: mvn package deploy -DmuleDeploy -Dusername=$CLOUDHUB_USERNAME -Dpassword=$CLOUDHUB_PASSWORD -Denvironment=$CLOUDHUB_ENVIRONMENT -DbusinessGroupId=$CLOUDHUB_GROUPID -DworkerType=$WORKERTYPE -Dwokers=$WORKERS -DskipVerification=$SKIPVERIFICATION -Dappextension=$APPEXTENSION
+      run: |
+        mvn package deploy -DmuleDeploy -Dusername=$CLOUDHUB_USERNAME -Dpassword=$CLOUDHUB_PASSWORD -Denvironment=$CLOUDHUB_ENVIRONMENT -DbusinessGroupId=$CLOUDHUB_GROUPID -DworkerType=$WORKERTYPE -Dwokers=$WORKERS -DskipVerification=$SKIPVERIFICATION -Dappextension=$APPEXTENSION
+        ls -al
+        echo `pwd`
    
     - name: "Tag Release"
       shell: bash
-      if: contains(github.ref, 'master')
+      if: contains(github.ref, 'master') && (env.PROD_RELEASE  == 'false')
       env:
         BUILD_VERSION: ${{ steps.getversion.outputs.BUILD_VERSION }}
-        COMMITID : 
       run: |
         echo "develop-$BUILD_VERSION"
         TAG="develop-$BUILD_VERSION"
-        git tag "$TAG" ${GITHUB_SHA} -m "Sandbox deployment"
+        git tag "$TAG" 
         git push origin "$TAG"
 
     - name: "deploy prod"
-      if: contains(github.event_name, 'tag') && contains(github.ref, 'PROD')
+      if:  env.PROD_RELEASE == 'true'
       shell: bash
       run: echo "deploy to prod"
+
+    - uses: actions/upload-artifact@v2-preview
+      env:
+        BUILD_VERSION: ${{ steps.getversion.outputs.BUILD_VERSION }}
+      with:
+        name: deployment-$BUILDVERSION
+        path: 'target/*.jar'
 
    
