@@ -35,6 +35,22 @@ jobs:
         echo ${{ github.ref }}
         echo $EVENT
         echo "$PROD  $PROD1 "
+
+    - name: "check valid prod release"
+      if: env.PROD_RELEASE == 'true'
+      shell: bash
+      env: 
+        TARGET: ${{ github.event.release.target_commitish }}
+        ISMASTER: ${{ contains(github.event.release.target_commitish, 'master') }}
+      run: |
+        echo $TARGET
+        echo $ISMASTER
+        if [ $ISMASTER = 'true' ]
+        then
+          exit 0
+        else
+          exit 1
+        fi
     - uses: actions/checkout@v2
       with:
         ref: ${{ github.ref }}
@@ -101,7 +117,7 @@ jobs:
         git push origin "$TAG"
 
     - name: "deploy prod"
-      if:  env.PROD_RELEASE
+      if:  env.PROD_RELEASE == 'true'
       shell: bash
       run: echo "deploy to prod"
 
