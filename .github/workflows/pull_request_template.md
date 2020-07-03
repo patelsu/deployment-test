@@ -12,7 +12,7 @@
 
 | Review Item   | Status        | Reference | Comments      |
 | :------------ | :-------------|:---------- |:------------ |
-| The project contains the common .gitignore file	 | [ ]  |Content Cell  | Content Cell  |
+| The project contains the common .gitignore file	 | - [ ]  |Content Cell  | Content Cell  |
 | src/test folders should contain files related to testing	  | Content Cell  |Content Cell  | Content Cell  |
 | The git repository is cleaned of any trash files (files commited previously of the addition of a .gitignore file)	  | Content Cell  |Content Cell  | Content Cell  |
 | The project name is the same as the repo in GIT		  | Content Cell  |Content Cell  | Content Cell  |
